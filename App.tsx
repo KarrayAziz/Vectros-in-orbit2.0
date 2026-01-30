@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Search, Loader2, Database, Layers, Atom, X, ArrowRight } from 'lucide-react';
 import ResultCard from './components/ResultCard';
-import MoleculeViewer from './components/MoleculeViewer';
+import ProteinCard from './components/ProteinCard';
+import ProteinViewer from './components/ProteinViewer';
 import { DISPLAY_LIMIT } from './constants';
 
 // API Configuration
@@ -30,7 +31,8 @@ function App() {
         params: {
           query,
           limit: DISPLAY_LIMIT,
-          offset: 0
+          offset: 0,
+          search_type: searchType
         }
       });
       // Backend returns directly the list of records
@@ -67,7 +69,8 @@ function App() {
         params: {
           query,
           limit: DISPLAY_LIMIT,
-          offset: nextOffset
+          offset: nextOffset,
+          search_type: searchType
         }
       });
 
@@ -183,17 +186,31 @@ function App() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.map((res) => (
-              <ResultCard
-                key={res.pmid}
-                id={res.pmid}
-                score={res.score}
-                payload={{
-                  title: res.title,
-                  source: "PubMed",
-                  text: res.abstract
-                }}
-                onViewStructure={setViewingPdbId}
-              />
+              res.type === 'protein' ? (
+                <ProteinCard
+                  key={res.pdb_id}
+                  id={res.pdb_id}
+                  score={res.score}
+                  payload={{
+                    name: res.name,
+                    description: res.description,
+                    stoichiometry: res.stoichiometry
+                  }}
+                  onViewStructure={setViewingPdbId}
+                />
+              ) : (
+                <ResultCard
+                  key={res.pmid}
+                  id={res.pmid}
+                  score={res.score}
+                  payload={{
+                    title: res.title,
+                    source: "PubMed",
+                    text: res.abstract
+                  }}
+                  onViewStructure={setViewingPdbId}
+                />
+              )
             ))}
           </div>
 
@@ -217,31 +234,12 @@ function App() {
           )}
         </section>
 
-        {/* 3D Viewer Modal */}
+        {/* Premium 3D Viewer */}
         {viewingPdbId && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl relative">
-              <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800">
-                <h3 className="text-white font-semibold flex items-center gap-2">
-                  <Atom size={18} className="text-bio-500" />
-                  Protein Structure: {viewingPdbId}
-                </h3>
-                <button
-                  onClick={() => setViewingPdbId(null)}
-                  className="text-slate-400 hover:text-white"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="p-0 bg-white">
-                {/* White bg for iCn3D visibility */}
-                <MoleculeViewer pdbId={viewingPdbId} height="500px" />
-              </div>
-              <div className="p-3 bg-slate-800 text-center text-xs text-slate-400">
-                Powered by iCn3D. Rotate to view. Use mouse wheel to zoom.
-              </div>
-            </div>
-          </div>
+          <ProteinViewer
+            pdbId={viewingPdbId}
+            onClose={() => setViewingPdbId(null)}
+          />
         )}
       </div>
     </div>

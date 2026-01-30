@@ -34,13 +34,17 @@ def update_db():
 
 
 @app.get("/search")
-def semantic_search(query: str, limit: int = 12, offset: int = 0):
+def semantic_search(query: str, limit: int = 12, offset: int = 0, search_type: str = "text"):
     from embeddings import embed
+    from qdrant_db import COLLECTION, PROTEIN_COLLECTION
 
     vector = embed([query])[0]
+    
+    # Determine collection name based on search type
+    collection_name = PROTEIN_COLLECTION if search_type == "protein" else COLLECTION
 
     response = client.query_points(
-        collection_name="Articles",
+        collection_name=collection_name,
         query=vector.tolist(),
         using="text",
         limit=limit,
@@ -48,13 +52,28 @@ def semantic_search(query: str, limit: int = 12, offset: int = 0):
     )
     results = response.points
 
-    return [
-        {
-            "pmid": r.payload["pmid"],
-            "title": r.payload["title"],
-            "abstract": r.payload.get("chunk_text", r.payload.get("abstract", "")),  # Return chunk_text if available
-            "url": r.payload["url"],
-            "score": r.score
-        }
-        for r in results
-    ]
+    # Standardize output for frontend
+    if search_type == "protein":
+        return [
+            {
+                "pdb_id": r.payload["pdb_id"],
+                "name": r.payload["name"],
+                "description": r.payload["description"],
+                "stoichiometry": r.payload.get("stoichiometry", "N/A"),
+                "score": r.score,
+                "type": "protein"
+            }
+            for r in results
+        ]
+    else:
+        return [
+            {
+                "pmid": r.payload["pmid"],
+                "title": r.payload["title"],
+                "abstract": r.payload.get("chunk_text", r.payload.get("abstract", "")),
+                "url": r.payload["url"],
+                "score": r.score,
+                "type": "text"
+            }
+            for r in results
+        ]
