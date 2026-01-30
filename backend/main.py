@@ -37,13 +37,17 @@ def update_db():
 
 
 @app.get("/search")
-def semantic_search(query: str, limit: int = 12, offset: int = 0):
+def semantic_search(query: str, limit: int = 12, offset: int = 0, search_type: str = "text"):
     from embeddings import embed
+    from qdrant_db import COLLECTION, PROTEIN_COLLECTION
 
     vector = embed([query])[0]
+    
+    # Determine collection name based on search type
+    collection_name = PROTEIN_COLLECTION if search_type == "protein" else COLLECTION
 
     response = client.query_points(
-        collection_name="Articles",
+        collection_name=collection_name,
         query=vector.tolist(),
         using="text",
         limit=limit,

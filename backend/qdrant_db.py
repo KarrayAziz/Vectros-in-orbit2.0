@@ -6,10 +6,11 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct
 
 # Read host/port from environment to work in Docker Compose
-QDRANT_HOST = os.getenv("QDRANT_HOST", "qdrant")
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", 6333))
 
 COLLECTION = "Articles"
+PROTEIN_COLLECTION = "protein_context"
 VECTOR_NAME = "text"  # must match your collection vector name
 VECTOR_SIZE = 384      # must match embedding model
 
@@ -67,14 +68,14 @@ def get_ingested_pmids() -> set:
         return set()
 
 
-def init_collection():
+def init_collection(collection_name: str = COLLECTION):
     """Create the collection if it does not exist."""
     try:
-        if not client.collection_exists(COLLECTION):
-            print(f"[INFO] Collection '{COLLECTION}' does not exist. Creating...")
+        if not client.collection_exists(collection_name):
+            print(f"[INFO] Collection '{collection_name}' does not exist. Creating...")
             try:
                 client.create_collection(
-                    collection_name=COLLECTION,
+                    collection_name=collection_name,
                     vectors_config={
                         VECTOR_NAME: VectorParams(
                             size=VECTOR_SIZE,
@@ -87,15 +88,15 @@ def init_collection():
                         )
                     }
                 )
-                print(f"[INFO] Collection '{COLLECTION}' created successfully with HNSW indexing (m=16, ef_construct=200).")
+                print(f"[INFO] Collection '{collection_name}' created successfully.")
             except Exception as create_err:
                 # Collection might be in deletion state; wait and retry
                 print(f"[WARN] Failed to create collection: {create_err}. Waiting 2 seconds and retrying...")
                 time.sleep(2)
                 try:
-                    if not client.collection_exists(COLLECTION):
+                    if not client.collection_exists(collection_name):
                         client.create_collection(
-                            collection_name=COLLECTION,
+                            collection_name=collection_name,
                             vectors_config={
                                 VECTOR_NAME: VectorParams(
                                     size=VECTOR_SIZE,
@@ -108,12 +109,12 @@ def init_collection():
                                 )
                             }
                         )
-                        print(f"[INFO] Collection '{COLLECTION}' created successfully on retry.")
+                        print(f"[INFO] Collection '{collection_name}' created successfully on retry.")
                 except Exception as retry_err:
                     print(f"[ERROR] Failed to create collection after retry: {retry_err}")
                     raise
         else:
-            print(f"[INFO] Collection '{COLLECTION}' already exists.")
+            print(f"[INFO] Collection '{collection_name}' already exists.")
     except Exception as e:
         print(f"[ERROR] Failed to initialize collection: {e}")
         raise
