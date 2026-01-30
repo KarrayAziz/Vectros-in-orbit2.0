@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from ingest import update_database
+from smiles import search_similar_smiles
 from qdrant_client import QdrantClient
 import os
+from tensorflow.keras.models import load_model
+from qdrant_client import QdrantClient, models
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -52,28 +55,18 @@ def semantic_search(query: str, limit: int = 12, offset: int = 0, search_type: s
     )
     results = response.points
 
-    # Standardize output for frontend
-    if search_type == "protein":
-        return [
-            {
-                "pdb_id": r.payload["pdb_id"],
-                "name": r.payload["name"],
-                "description": r.payload["description"],
-                "stoichiometry": r.payload.get("stoichiometry", "N/A"),
-                "score": r.score,
-                "type": "protein"
-            }
-            for r in results
-        ]
-    else:
-        return [
-            {
-                "pmid": r.payload["pmid"],
-                "title": r.payload["title"],
-                "abstract": r.payload.get("chunk_text", r.payload.get("abstract", "")),
-                "url": r.payload["url"],
-                "score": r.score,
-                "type": "text"
-            }
-            for r in results
-        ]
+    return [
+        {
+            "pmid": r.payload["pmid"],
+            "title": r.payload["title"],
+            "abstract": r.payload.get("chunk_text", r.payload.get("abstract", "")),  # Return chunk_text if available
+            "url": r.payload["url"],
+            "score": r.score
+        }
+        for r in results
+    ]
+
+@app.get("/smiles-search")
+def smiles_search(smiles: str, limit: int = 3):
+    results = search_similar_smiles(smiles)
+    return results
