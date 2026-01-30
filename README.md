@@ -57,10 +57,11 @@ docker-compose down
 - 📎 **Scientific Traceability**: Every result links back to the original PubMed article
 
 ### Technical Highlights
+- **Pagination Support**: Seamlessly load more results (12 per request) to explore deep into the search space.
 - **Named Vectors**: Separate vector spaces for Text (384D), Protein (384D), Molecule (384D)
-- **HNSW Indexing**: High-precision clustering (m=32, ef_construct=200)
+- **HNSW Indexing**: High-precision clustering (m=16, ef_construct=200) for fast retrieval
 - **MMR Diversity**: Maximal Marginal Relevance for diverse result sets
-- **Zero-Setup**: Docker handles all dependencies and initialization
+- **Zero-Setup**: Full Docker orchestration handles all dependencies and initialization automatically.
 
 ---
 
@@ -96,111 +97,53 @@ docker-compose down
 ```
 Vectros-in-orbit2.0/
 ├── backend/
-│   ├── main.py              # FastAPI application
-│   ├── embeddings.py        # FastEmbed model manager
-│   ├── fetcher.py           # NCBI PubMed integration
-│   ├── qdrant_setup.py      # Vector DB schema
+│   ├── main.py              # FastAPI application & API endpoints
+│   ├── embeddings.py        # FastEmbed model management
+│   ├── pubmed.py            # NCBI PubMed retrieval logic
+│   ├── qdrant_db.py         # Qdrant client & vector operations
+│   ├── ingest.py            # Data pipeline & semantic chunking
+│   ├── create_collection.py # Collection initialization script
 │   ├── requirements.txt     # Python dependencies
-│   └── Dockerfile           # Backend container
+│   └── Dockerfile           # Backend container definition
 ├── components/
-│   ├── MoleculeViewer.tsx   # iCn3D 3D viewer
-│   └── ResultCard.tsx       # Search result card
-├── App.tsx                  # Main React application
-├── index.html               # HTML entry point
-├── docker-compose.yml       # Orchestration config
-├── Dockerfile               # Frontend container
-└── README.md                # This file
+│   ├── MoleculeViewer.tsx   # iCn3D 3D molecular viewer
+│   ├── ResultCard.tsx       # Interactive search result card
+│   └── ...                  # Other UI components
+├── App.tsx                  # Main React application & state management
+├── constants.ts             # Application constants & configuration
+├── docker-compose.yml       # Multi-container orchestration
+├── Dockerfile               # Production frontend container (Nginx)
+└── README.md                # This documentation
 ```
 
 ---
 
 ## 🧪 How It Works
 
-1. **User Query**: User types "Insulin" and hits Enter
-2. **NCBI Fetch**: Backend queries PubMed via Biopython, retrieves 5 latest papers
-3. **Semantic Chunking**: Chonkie splits abstracts intelligently (not random splits)
-4. **Vector Embedding**: FastEmbed converts each chunk to a 384D vector
-5. **Qdrant Storage**: Vectors + metadata (title, source, ΔG) stored in Qdrant
-6. **Similarity Search**: User query is embedded and compared to stored vectors
-7. **Results Display**: Top matches displayed with scores, sources, and 3D viewer option
+1. **User Query**: User types a scientific query (e.g., "Insulin")
+2. **NCBI Fetch**: Backend queries PubMed via Biopython to grab the most recent relevant abstracts.
+3. **Semantic Chunking**: Chonkie splits abstracts intelligently at semantic boundaries.
+4. **Vector Embedding**: FastEmbed converts each chunk into a high-dimensional vector.
+5. **Qdrant Storage**: Vectors + rich metadata (PMID, title, source, chunk text) are upserted into Qdrant.
+6. **Similarity Search**: The query is embedded and compared against the vector store using Cosine similarity.
+7. **Pagination**: Users can click "Display next 12 results" to increment the search offset and load deeper insights.
+8. **Visualization**: One-click 3D structure viewing for proteins via iCn3D.
 
 ---
 
-## 🛠️ Manual Setup (Without Docker)
+---
 
-<details>
-<summary>Click to expand manual installation instructions</summary>
+## 🐳 Running with Docker
 
-### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- Qdrant (running on localhost:6333)
+The application is fully containerized for a seamless experience across all platforms.
 
-### Windows Setup
-
-1. **Run the automated setup script**:
-   ```cmd
-   setup.bat
-   ```
-
-2. **Start Qdrant** (in a separate terminal):
-   ```cmd
-   docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
-   ```
-
-3. **Run the application**:
-   ```cmd
-   run.bat
-   ```
-
-### Linux/Mac Setup
-
-1. **Make scripts executable and run setup**:
-   ```bash
-   chmod +x setup.sh run.sh
-   ./setup.sh
-   ```
-
-2. **Start Qdrant** (in a separate terminal):
-   ```bash
-   docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
-   ```
-
-3. **Run the application**:
-   ```bash
-   ./run.sh
-   ```
-
-### Manual Step-by-Step (Advanced)
-
-If the scripts don't work, follow these steps manually:
-
-**Backend:**
 ```bash
-cd backend
-python -m venv .venv
+# Build and start all services
+docker-compose up --build
 
-# Windows:
-.venv\Scripts\activate.bat
-# Linux/Mac:
-source .venv/bin/activate
-
-pip install -r requirements.txt
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+# Shutdown the application
+docker-compose down
 ```
-
-**Frontend (in a new terminal):**
-```bash
-npm install
-npm run dev
-```
-
-**Access:**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000/docs
-- Qdrant: http://localhost:6333/dashboard
-
-</details>
 
 ---
 
