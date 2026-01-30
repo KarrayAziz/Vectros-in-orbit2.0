@@ -8,4 +8,6 @@ chonkie[model2vec]
 numpy
 python-dotenv
 requests
+tensorflow
+rdkit
 openai

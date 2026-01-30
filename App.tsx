@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Search, Loader2, Database, Layers, Atom, X, ArrowRight } from 'lucide-react';
 import ResultCard from './components/ResultCard';
 import ProteinCard from './components/ProteinCard';
+import MoleculeCard from './components/MoleculeCard';
 import ProteinViewer from './components/ProteinViewer';
 import { DISPLAY_LIMIT } from './constants';
 
@@ -197,6 +198,13 @@ function App() {
                     stoichiometry: res.stoichiometry
                   }}
                   onViewStructure={setViewingPdbId}
+                />
+              ) : res.type === 'molecule' ? (
+                <MoleculeCard
+                  key={res.smiles}
+                  smiles={res.smiles}
+                  score={res.score}
+                  svg={res.svg}
                 />
               ) : (
                 <ResultCard

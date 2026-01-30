@@ -29,13 +29,11 @@ That's it! The entire stack will start automatically.
 ### 3. Try It Out
 
 1. Open [http://localhost:3000](http://localhost:3000)
-2. Type "**Insulin**" or "**BRCA1**" in the search bar
-3. Hit **Enter**
-4. Watch as the system:
-   - Fetches real papers from NCBI PubMed
-   - Processes them with semantic chunking
-   - Displays scientifically relevant results
-   - Provides links back to original sources
+2. **Choose Your Discovery Mode**:
+   - **Text**: Search PubMed articles (e.g., "Alzheimer's treatments")
+   - **Protein**: Visualize human protein structures from PDB (e.g., "Insulin")
+   - **Molecule**: Discover chemical compounds via SMILES latent search (e.g., "CCO")
+3. Watch as the system retrieves data from **NCBI**, **RCSB PDB**, or your custom **SMILES VAE** model.
 
 ### 4. Stop the Application
 
@@ -48,20 +46,18 @@ docker-compose down
 ## ✨ Features
 
 ### Core Capabilities
-- 🧬 **Real-Time NCBI Search**: Automatically fetches the latest papers from PubMed on each query
-- 🔍 **Semantic Vector Search**: Uses FastEmbed (BAAI/bge-small-en-v1.5) for meaning-based retrieval
-- 📊 **Physics-Informed Ranking**: Results include thermodynamic stability (ΔG values)
-- 🧱 **Semantic Chunking**: Chonkie library breaks abstracts at logical boundaries
-- 🏗️ **Multimodal Embeddings**: Supports Text, Protein, and Molecule vectors
-- 🔬 **3D Visualization**: iCn3D integration for protein structure viewing
-- 📎 **Scientific Traceability**: Every result links back to the original PubMed article
+- 🧬 **NCBI PubMed Integration**: Real-time retrieval of the latest biomedical literature.
+- 🧬 **PDB Protein Discovery**: Immersive structural search across the RCSB Protein Data Bank.
+- 🧪 **SMILES Chemical Search**: Latent space discovery using a custom VAE model for molecular similarity.
+- 🔍 **Unified Semantic Search**: Bge-small-en-v1.5 embeddings power both literature and structural queries.
+- 🧱 **Advanced Visualizer**: PDBe-molstar integration with illustrative lighting and futuristic HUD.
+- 📊 **Multimodal Results**: Hybrid UI renders specialized cards for papers, proteins, and molecules.
 
 ### Technical Highlights
-- **Pagination Support**: Seamlessly load more results (12 per request) to explore deep into the search space.
-- **Named Vectors**: Separate vector spaces for Text (384D), Protein (384D), Molecule (384D)
-- **HNSW Indexing**: High-precision clustering (m=16, ef_construct=200) for fast retrieval
-- **MMR Diversity**: Maximal Marginal Relevance for diverse result sets
-- **Zero-Setup**: Full Docker orchestration handles all dependencies and initialization automatically.
+- **Quad-Collection Architecture**: Separate vector spaces for Text, Proteins, and Chemical Latent vectors.
+- **HNSW Indexing**: High-precision semantic clustering for sub-second retrieval.
+- **Unified Embedding Logic**: Consistent BGE-Small vectorization across all biological entities.
+- **Zero-Setup Docker**: Full orchestration handles model pre-loading and DB health checks.
 
 ---
 
@@ -74,21 +70,22 @@ docker-compose down
 │  (Port 80)  │      │  (Port 8000) │      │ (Port 6333) │
 └─────────────┘      └──────────────┘      └─────────────┘
                             │
-                            ▼
-                     ┌──────────────┐
-                     │ NCBI PubMed  │
-                     │   (Biopython)│
-                     └──────────────┘
+            ┌───────────────┴───────────────┐
+            │                               │
+            ▼                               ▼
+     ┌──────────────┐                ┌──────────────┐
+     │ NCBI PubMed  │                │   RCSB PDB   │
+     │   (Biopython)│                │   (Structure)│
+     └──────────────┘                └──────────────┘
 ```
 
 ### Technology Stack
 - **Frontend**: React 19 + Vite + TypeScript + TailwindCSS
-- **Backend**: Python 3.1 + FastAPI + Uvicorn
-- **Vector Database**: Qdrant (with Named Vectors)
-- **Embeddings**: FastEmbed (BAAI/bge-small-en-v1.5)
-- **Chunking**: Chonkie (Semantic Chunker)
-- **Data Source**: NCBI PubMed (via Biopython Entrez)
-- **3D Visualization**: iCn3D
+- **Backend**: Python 3.11 + FastAPI + Uvicorn
+- **AI Models**: FastEmbed (BGE-Small) + Custom Keras VAE (SMILES)
+- **Vector Database**: Qdrant (Hybrid Cloud/Local)
+- **Data Sources**: NCBI, RCSB PDB, PubChem
+- **3D Visualization**: PDBe-molstar
 
 ---
 
@@ -97,37 +94,33 @@ docker-compose down
 ```
 Vectros-in-orbit2.0/
 ├── backend/
-│   ├── main.py              # FastAPI application & API endpoints
-│   ├── embeddings.py        # FastEmbed model management
-│   ├── pubmed.py            # NCBI PubMed retrieval logic
-│   ├── qdrant_db.py         # Qdrant client & vector operations
-│   ├── ingest.py            # Data pipeline & semantic chunking
-│   ├── create_collection.py # Collection initialization script
-│   ├── requirements.txt     # Python dependencies
-│   └── Dockerfile           # Backend container definition
+│   ├── main.py              # Central search router & endpoints
+│   ├── qdrant_db.py         # Multi-collection client logic
+│   ├── ingest_proteins.py   # PDB structure scraper & ingestion
+│   ├── smiles.py            # Latent molecular search logic
+│   ├── Blog_simple...h5     # Chemical discovery VAE model
+│   ├── Dockerfile           # Neural backend container
+│   └── requirements.txt     # Unified dependency list
 ├── components/
-│   ├── MoleculeViewer.tsx   # iCn3D 3D molecular viewer
-│   ├── ResultCard.tsx       # Interactive search result card
-│   └── ...                  # Other UI components
-├── App.tsx                  # Main React application & state management
-├── constants.ts             # Application constants & configuration
-├── docker-compose.yml       # Multi-container orchestration
-├── Dockerfile               # Production frontend container (Nginx)
-└── README.md                # This documentation
+│   ├── ProteinViewer.tsx    # Illustrative 3D visualization HUD
+│   ├── ProteinCard.tsx      # Structure-focused result card
+│   ├── MoleculeCard.tsx     # Chemical formula search card
+│   └── ResultCard.tsx       # Standard PubMed article card
+├── App.tsx                  # Dual-mode state & hybrid UI logic
+└── ...
 ```
 
 ---
 
 ## 🧪 How It Works
 
-1. **User Query**: User types a scientific query (e.g., "Insulin")
-2. **NCBI Fetch**: Backend queries PubMed via Biopython to grab the most recent relevant abstracts.
-3. **Semantic Chunking**: Chonkie splits abstracts intelligently at semantic boundaries.
-4. **Vector Embedding**: FastEmbed converts each chunk into a high-dimensional vector.
-5. **Qdrant Storage**: Vectors + rich metadata (PMID, title, source, chunk text) are upserted into Qdrant.
-6. **Similarity Search**: The query is embedded and compared against the vector store using Cosine similarity.
-7. **Pagination**: Users can click "Display next 12 results" to increment the search offset and load deeper insights.
-8. **Visualization**: One-click 3D structure viewing for proteins via iCn3D.
+1. **Discovery Mode**: User toggles between Literature, Proteins, and Molecules.
+2. **Neural Retrieval**:
+   - **Text/Protein**: BGE embeddings find semantic matches in PubMed/PDB.
+   - **Chemical**: Keras VAE converts SMILES into latent vectors for similarity search.
+3. **Hybrid Rendering**: Backend returns standardized types, and the UI adapts the card style (PubMed vs. PDB vs. SMILES).
+4. **Immersive Viewing**: Proteins are loaded into a high-precision 3D viewport with illustrative depth and real-time metadata HUD.
+
 
 ---
 
