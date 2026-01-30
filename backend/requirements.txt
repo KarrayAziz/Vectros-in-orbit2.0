@@ -8,6 +8,11 @@ chonkie[model2vec]
 numpy
 python-dotenv
 requests
+<<<<<<< HEAD
 tensorflow
 rdkit
 openai
+=======
+openai
+tensorflow
+>>>>>>> d2ea12fb70eefdfe3e74f4e0253b9bb073cfc306
