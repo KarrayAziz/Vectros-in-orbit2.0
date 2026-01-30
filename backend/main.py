@@ -34,7 +34,7 @@ def update_db():
 
 
 @app.get("/search")
-def semantic_search(query: str):
+def semantic_search(query: str, limit: int = 12, offset: int = 0):
     from embeddings import embed
 
     vector = embed([query])[0]
@@ -43,7 +43,8 @@ def semantic_search(query: str):
         collection_name="Articles",
         query=vector.tolist(),
         using="text",
-        limit=10
+        limit=limit,
+        offset=offset
     )
     results = response.points
 

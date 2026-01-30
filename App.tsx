@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Search, Loader2, Database, Layers, Atom, X } from 'lucide-react';
+import { Search, Loader2, Database, Layers, Atom, X, ArrowRight } from 'lucide-react';
 import ResultCard from './components/ResultCard';
 import MoleculeViewer from './components/MoleculeViewer';
+import { DISPLAY_LIMIT } from './constants';
 
 // API Configuration
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'; // Adjust as needed
@@ -14,6 +15,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [ingesting, setIngesting] = useState(false);
   const [viewingPdbId, setViewingPdbId] = useState<string | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,12 +24,18 @@ function App() {
 
     setLoading(true);
     setResults([]);
+    setOffset(0);
     try {
       const res = await axios.get(`${API_URL}/search`, {
-        params: { query }
+        params: {
+          query,
+          limit: DISPLAY_LIMIT,
+          offset: 0
+        }
       });
       // Backend returns directly the list of records
       setResults(res.data);
+      setHasMore(res.data.length === DISPLAY_LIMIT);
     } catch (err) {
       console.error("Search failed:", err);
       alert("Search failed. Ensure backend is running.");
@@ -45,6 +54,31 @@ function App() {
       alert("Database update failed. Ensure backend is running.");
     } finally {
       setIngesting(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (loading) return;
+
+    const nextOffset = offset + DISPLAY_LIMIT;
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/search`, {
+        params: {
+          query,
+          limit: DISPLAY_LIMIT,
+          offset: nextOffset
+        }
+      });
+
+      setResults(prev => [...prev, ...res.data]);
+      setOffset(nextOffset);
+      setHasMore(res.data.length === DISPLAY_LIMIT);
+    } catch (err) {
+      console.error("Load more failed:", err);
+      alert("Failed to load more results.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -162,6 +196,25 @@ function App() {
               />
             ))}
           </div>
+
+          {results.length > 0 && hasMore && (
+            <div className="mt-12 flex justify-center">
+              <button
+                onClick={handleLoadMore}
+                disabled={loading}
+                className="flex items-center gap-2 px-6 py-3 bg-slate-800 border border-slate-700 rounded-full text-slate-300 hover:text-white hover:border-bio-500 hover:bg-slate-700/50 transition-all shadow-xl group disabled:opacity-50"
+              >
+                {loading ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <>
+                    <span className="font-semibold">Display next {DISPLAY_LIMIT} results</span>
+                    <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </section>
 
         {/* 3D Viewer Modal */}

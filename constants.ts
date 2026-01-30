@@ -94,3 +94,5 @@ export const SAMPLE_QUERIES = [
   "Kinase inhibitor binding enthalpy",
   "CRISPR-Cas9 conformers"
 ];
+
+export const DISPLAY_LIMIT = 12;
