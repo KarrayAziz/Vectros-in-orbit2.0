@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from ingest import update_database
+from smiles import search_similar_smiles
 from qdrant_client import QdrantClient
 import os
+from tensorflow.keras.models import load_model
+from qdrant_client import QdrantClient, models
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -58,3 +61,8 @@ def semantic_search(query: str, limit: int = 12, offset: int = 0):
         }
         for r in results
     ]
+
+@app.get("/smiles-search")
+def smiles_search(smiles: str, limit: int = 3):
+    results = search_similar_smiles(smiles)
+    return results
