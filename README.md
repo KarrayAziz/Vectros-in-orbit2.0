@@ -1,4 +1,5 @@
 # Bio-Vector Orbit - Discovery Engine v2.0
+<img width="1918" height="902" alt="image" src="https://github.com/user-attachments/assets/9ba6a76b-56fc-4502-beb0-92cfd337965c" />
 
 A **Vector-Powered Discovery Engine** that transforms fragmented biological data (papers, DNA sequences, and chemical molecules) into a unified, searchable intelligence layer using **NCBI**, **Qdrant**, **FastEmbed**, and **React**.
 
